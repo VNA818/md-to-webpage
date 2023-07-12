@@ -8,21 +8,20 @@ const mangle = require('marked-mangle').mangle;
 const hljs = require('highlight.js');
 const markedBaseUrl = require('marked-base-url');
 const headers = require('marked-gfm-heading-id').gfmHeadingId;
+const minify = require('html-minifier').minify;
 
 let colorMode = '';
 let baseUrl = './';
 const directoryPath = process.cwd();
-const outputDir = './output';
-const headerPrefix = 'header-';
+let outputDir = './output';
+let headerPrefix = 'header-';
 
 process.argv.slice(2).forEach((arg, i) => {
   if(arg === '-dark') {
     colorMode = arg;
-    return;
   }
   if(arg === '-light') {
     colorMode = arg;
-    return;
   }
   let argUrl1 = arg.split('--baseUrl=');
   baseUrl = argUrl1[1] || baseUrl;
@@ -41,7 +40,7 @@ const html = (body, options) =>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="${options.path}github-markdown${options.colorMode}.css">
     <link rel="stylesheet" href="${options.path}mdStyle.css">
-    <link rel="stylesheet" href="${options.path}mdCode${options.colorMode}.css">
+    ${options.code ? `<link rel="stylesheet" href="${options.path}mdCode${options.colorMode}.css">` : ''}
     <title>${options.title.charAt(0).toUpperCase() + options.title.slice(1)}</title>
   </head>
   <body>
@@ -53,7 +52,7 @@ const html = (body, options) =>
         Made With: <a href='https://github.com/VNA818/md-to-webpage'>md to webpage</a>
       </div>
     </div>
-  </body`;
+  </body>`;
 
 fs.readdir(directoryPath, (err, files) => {
   if (err) {
@@ -74,7 +73,7 @@ fs.readdir(directoryPath, (err, files) => {
       }
     }));
     markdown.use(mangle());
-    markdown.use(headers({ prefix: 'header-' }));
+    markdown.use(headers({ prefix: headerPrefix }));
     if(baseUrl !== './') {
       markdown.use(markedBaseUrl.baseUrl(baseUrl));
     }
@@ -89,12 +88,13 @@ fs.readdir(directoryPath, (err, files) => {
     file = fs.readFileSync(file, 'utf-8');
     const body = markdown.parse(file);
 
-    const page = html(body, {
+    let page = html(body, {
       title: title,
       path: baseUrl,
       colorMode: colorMode,
       code: includeCode.currentFile
     })
+    page = minify(page, { collapseWhitespace: true });
 
     if(!fs.existsSync(path.join(directoryPath, `${outputDir}`))){
       fs.mkdirSync(path.join(directoryPath, `${outputDir}`));
