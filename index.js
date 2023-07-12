@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const path = require('path');
 const fs = require('fs');
 const markdown  = require('marked');
@@ -67,7 +69,7 @@ fs.readdir(directoryPath, (err, files) => {
       langPrefix: 'hljs language-',
       highlight(code, lang) {
         includeCode = {currentFile: true, inDirectory: true};
-        const language = hljs.getLanguage(lang) ? lang : 'plaintext'; //check if code if not dont attatch css
+        const language = hljs.getLanguage(lang) ? lang : 'plaintext';
         return hljs.highlight(code, { language }).value;
       }
     }));
