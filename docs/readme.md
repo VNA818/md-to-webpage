@@ -1,3 +1,3 @@
 # Example
 
-Example webpage output from converting a md file
+Example webpage output from converting a md file.
